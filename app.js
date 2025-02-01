@@ -45,4 +45,8 @@ export default app;
 
 app.get("/", (req, res) => res.send(`<h1>Welcome To MITR Consultancy</h1>`));
 
+app.get("/api/v1/getkey", (req, res) =>
+  res.status(200).json({ key: process.env.RAZORPAY_API_KEY })
+);
+
 app.use(ErrorMiddleware);
