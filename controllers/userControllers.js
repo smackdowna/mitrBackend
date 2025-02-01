@@ -2,7 +2,7 @@ import { User } from "../models/userModel.js";
 import { catchAsyncError } from "../middlewares/catchAsyncErrors.js";
 import ErrorHandler from "../utils/errorHandler.js";
 import { sendToken } from "../utils/sendToken.js";
-import {Course} from "../models/Course.js";
+import { Course } from "../models/Course.js";
 
 //generate OTP
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000);
@@ -74,19 +74,29 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
   const {
     full_name,
     email,
-    gender,
-    language,
-    dob,
     mobileNumber,
-    occupation,
     country,
     state,
     city,
     pinCode,
+    education, // Education array as input
   } = req.body;
 
-  if (!mobileNumber)
+  if (!mobileNumber) {
     return next(new ErrorHandler("Mobile number is required", 400));
+  }
+
+  // Parse education array if it's sent as a string (in case of JSON request)
+  let parsedEducation = [];
+  if (education) {
+    try {
+      parsedEducation = Array.isArray(education)
+        ? education
+        : JSON.parse(education);
+    } catch (error) {
+      return next(new ErrorHandler("Invalid education format", 400));
+    }
+  }
 
   // Check if the user already exists with the same mobile number and is verified
   let existingUser = await User.findOne({ mobileNumber, verified: true });
@@ -100,20 +110,17 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
   // Check if the user exists but is not verified
   let unverifiedUser = await User.findOne({ mobileNumber, verified: false });
 
-  // If an unverified user exists, update the user's details
   if (unverifiedUser) {
     // Update the unverified user's details
     unverifiedUser.full_name = full_name || unverifiedUser.full_name;
     unverifiedUser.email = email || unverifiedUser.email;
-    unverifiedUser.gender = gender || unverifiedUser.gender;
-    unverifiedUser.language = language || unverifiedUser.language;
-    unverifiedUser.dob = dob || unverifiedUser.dob;
-    unverifiedUser.occupation = occupation || unverifiedUser.occupation;
     unverifiedUser.country = country || unverifiedUser.country;
     unverifiedUser.state = state || unverifiedUser.state;
     unverifiedUser.city = city || unverifiedUser.city;
     unverifiedUser.pinCode = pinCode || unverifiedUser.pinCode;
-    unverifiedUser.verified = "true";
+    unverifiedUser.education =
+      parsedEducation.length > 0 ? parsedEducation : unverifiedUser.education;
+    unverifiedUser.verified = true;
 
     await unverifiedUser.save();
 
@@ -129,15 +136,12 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
   const user = await User.create({
     full_name,
     email,
-    gender,
-    language,
-    dob,
     mobileNumber,
-    occupation,
     country,
     state,
     city,
     pinCode,
+    education: parsedEducation, // Save parsed education array
   });
 
   sendToken(res, user, "Registered Successfully", 200);
@@ -170,52 +174,37 @@ export const logout = catchAsyncError(async (req, res, next) => {
 
 //update user details
 export const updateUserDetails = catchAsyncError(async (req, res, next) => {
+  
   const {
     full_name,
     email,
-    gender,
-    language,
-    dob,
     mobileNumber,
-    occupation,
     country,
     state,
     city,
     pinCode,
+    education,
   } = req.body;
 
-  // Ensure the user is logged in
-  const userId = req.user.id;
+  let user = await User.findById(req.user.id);
+  if (!user) return next(new ErrorHandler("User not found", 404));
 
-  // Fetch the user from the database
-  let user = await User.findById(userId);
-  if (!user) {
-    return res.status(404).json({
-      success: false,
-      message: "User not found",
-    });
-  }
-
-  // Update basic details if provided
+  // Only update fields if they are passed
   if (full_name) user.full_name = full_name;
   if (email) user.email = email;
-  if (gender) user.gender = gender;
-  if (language) user.language = language;
-  if (dob) user.dob = dob;
   if (mobileNumber) user.mobileNumber = mobileNumber;
-  if (occupation) user.occupation = occupation;
   if (country) user.country = country;
   if (state) user.state = state;
   if (city) user.city = city;
   if (pinCode) user.pinCode = pinCode;
+  if (education) user.education = education; // Don't update if not passed
 
-  // Save the updated user
-  await user.save();
+  
+  await user.save(); // Save the updated user
 
-  // Respond with success
   res.status(200).json({
     success: true,
-    message: "User details updated successfully",
+    message: "User updated successfully",
     user,
   });
 });

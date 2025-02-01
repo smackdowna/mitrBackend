@@ -1,8 +1,17 @@
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import validator from "validator";
-import bcrypt from "bcrypt";
-import crypto from "crypto";
+
+const educationSchema = new mongoose.Schema({
+  institute: { type: String, required: true },
+  degree: { type: String, required: true },
+  branch: { type: String, required: true },
+  semester: { type: String, required: true },
+  year: { type: String, required: true },
+  endDate: { type: String, required: true }
+});
+
+
 
 const schema = new mongoose.Schema({
   full_name: {
@@ -12,22 +21,10 @@ const schema = new mongoose.Schema({
     type: String,
     validate: [validator.isEmail, "Please Enter a valid Email"],
   },
-  gender: {
-    type: String,
-  },
-  language: {
-    type: String,
-  },
-  dob: {
-    type: Date,
-  },
   mobileNumber: {
     type: String,
     required: [true, "Please Enter your mobileNumber"],
     maxLength: [10, "Number cannot exceed 10 Number"],
-  },
-  occupation: {
-    type: String,
   },
   country: {
     type: String,
@@ -40,6 +37,10 @@ const schema = new mongoose.Schema({
   },
   pinCode: {
     type: String,
+  },
+  education: {
+    type: [educationSchema],
+    required: true,
   },
   role: {
     type: String,
