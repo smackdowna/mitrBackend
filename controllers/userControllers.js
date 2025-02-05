@@ -2,26 +2,25 @@ import { User } from "../models/userModel.js";
 import { catchAsyncError } from "../middlewares/catchAsyncErrors.js";
 import ErrorHandler from "../utils/errorHandler.js";
 import { sendToken } from "../utils/sendToken.js";
-import { Course } from "../models/Course.js";
+const sendEmail = require("../utils/sendEmail.js");
 
 //generate OTP
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000);
 
 //send OTP
 export const sendOTP = catchAsyncError(async (req, res, next) => {
-  const { mobileNumber, email } = req.body;
+  const {  email } = req.body;
 
-  if (!mobileNumber || !email)
-    return next(new ErrorHandler("Please enter all fields", 400));
+  if ( !email)
+    return next(new ErrorHandler("email is required", 400));
 
   const hardcodedOtpEnabled = process.env.HARDCODED_OTP === "true";
   const otp = hardcodedOtpEnabled ? "000000" : generateOTP();
 
-  let user = await User.findOne({ mobileNumber });
+  let user = await User.findOne({ email });
 
   if (!user) {
     user = await User.create({
-      mobileNumber,
       email,
       otp: otp,
       otp_expiry: Date.now() + 60 * 1000,
@@ -32,22 +31,43 @@ export const sendOTP = catchAsyncError(async (req, res, next) => {
     await user.save();
   }
 
+  const emailMessage = `Dear User,
+
+  Thank you for choosing MITR Consultancy! 🏆
+  
+  We're thrilled to have you on board for the upcoming MITR Consultancy event. To ensure the security of your account and expedite your registration process, please verify your account by entering the following One-Time Password (OTP):
+  
+  OTP: ${otp}
+  
+  This OTP is exclusively for you and will expire after a limited time. We encourage you to verify your account promptly to secure your spot at the event.
+  
+  Should you have any questions or concerns, our dedicated support team is here to assist you every step of the way.
+  
+  Thank you for your trust in MITR Consultancy. We can't wait to see you in action!
+  
+  Best regards,
+  
+  MITR Consultancy Team 🏅
+  `;
+
+  await sendEmail(email, "Verify your account", emailMessage);
+
   res.status(200).json({
     success: true,
     message: `OTP ${
       hardcodedOtpEnabled ? "hardcoded" : "random"
-    } sent successfully to registered mobile number`,
+    } sent successfully to registered email`,
   });
 });
 
 //verifyOTP
 export const verifyOTP = catchAsyncError(async (req, res, next) => {
-  const { mobileNumber, otp } = req.body;
+  const { email, otp } = req.body;
 
-  if (!mobileNumber || !otp)
+  if (!email || !otp)
     return next(new ErrorHandler("Please Enter mobile number and OTP"));
 
-  const user = await User.findOne({ mobileNumber });
+  const user = await User.findOne({ email });
 
   if (!user) return next(new ErrorHandler("User not found", 400));
 
@@ -82,8 +102,8 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
     education, // Education array as input
   } = req.body;
 
-  if (!mobileNumber) {
-    return next(new ErrorHandler("Mobile number is required", 400));
+  if (!email) {
+    return next(new ErrorHandler("email is required", 400));
   }
 
   // Parse education array if it's sent as a string (in case of JSON request)
@@ -99,7 +119,7 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
   }
 
   // Check if the user already exists with the same mobile number and is verified
-  let existingUser = await User.findOne({ mobileNumber, verified: true });
+  let existingUser = await User.findOne({ email, verified: true });
 
   if (existingUser) {
     return next(
@@ -108,7 +128,7 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
   }
 
   // Check if the user exists but is not verified
-  let unverifiedUser = await User.findOne({ mobileNumber, verified: false });
+  let unverifiedUser = await User.findOne({ email, verified: false });
 
   if (unverifiedUser) {
     // Update the unverified user's details
