@@ -21,7 +21,7 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: ["*", "http://localhost:3000", "http://localhost:5173"],
+    origin: ["*", "http://localhost:3000", "http://localhost:5173","https://mitr-consultancy.vercel.app","https://mitraconsultancy.co.in","https://www.mitraconsultancy.co.in"],
     credentials: true,
     methods: ["GET", "POST", "DELETE", "PUT"],
   })
