@@ -2,7 +2,7 @@ import { User } from "../models/userModel.js";
 import { catchAsyncError } from "../middlewares/catchAsyncErrors.js";
 import ErrorHandler from "../utils/errorHandler.js";
 import { sendToken } from "../utils/sendToken.js";
-const sendEmail = require("../utils/sendEmail.js");
+import sendEmail from "../utils/sendEmail.js";
 
 //generate OTP
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000);
