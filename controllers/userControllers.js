@@ -65,7 +65,7 @@ export const verifyOTP = catchAsyncError(async (req, res, next) => {
   const { email, otp } = req.body;
 
   if (!email || !otp)
-    return next(new ErrorHandler("Please Enter mobile number and OTP"));
+    return next(new ErrorHandler("Please Enter Email and OTP"));
 
   const user = await User.findOne({ email });
 
