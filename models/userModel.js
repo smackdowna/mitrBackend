@@ -23,7 +23,6 @@ const schema = new mongoose.Schema({
   },
   mobileNumber: {
     type: String,
-    required: [true, "Please Enter your mobileNumber"],
     maxLength: [10, "Number cannot exceed 10 Number"],
   },
   country: {
