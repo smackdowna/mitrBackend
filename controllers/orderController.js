@@ -54,6 +54,31 @@ export const createOrder = catchAsyncError(async (req, res, next) => {
     await course.save();
   }
 
+  const email = req.user.email;
+
+  const emailMessage = `Dear ${user.full_name},
+  Thank you for choosing MITR Consultancy and enrolling in our [Course Name] program!
+
+  Your training will last for three months, and all communication will take place via Google Chat, our official platform for daily interactions.
+
+  Next Steps:
+  Download Google Chat on your device.
+  Send a message to mitrconsultancy0101@gmail.com to initiate communication.
+  Our team will reach out to guide you through the next steps of your training.
+  For any queries, feel free to contact us at mitrconsultancy0101@gmail.com.
+
+  We look forward to supporting you on this journey!
+
+  Best regards,
+  MITR Consultancy Team 🏅
+  `;
+
+  await sendEmail(
+    email,
+    "Welcome to MITR Consultancy – Next Steps for Your Training",
+    emailMessage
+  );
+
   // Send response with order details
   res.status(200).json({
     success: true,
