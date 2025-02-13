@@ -3,6 +3,7 @@ import ErrorHandler from "../utils/errorHandler.js";
 import { Order } from "../models/OrderModel.js";
 import { Course } from "../models/Course.js";
 import { User } from "../models/userModel.js";
+import sendEmail from "../utils/sendEmail.js";
 
 //create order
 export const createOrder = catchAsyncError(async (req, res, next) => {
