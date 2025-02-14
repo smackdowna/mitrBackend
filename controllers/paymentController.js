@@ -54,7 +54,7 @@ export const paymentVerification = async (req, res) => {
     // });
 
     res.redirect(
-      `http://localhost:3000/payment-success?reference=${razorpay_payment_id}`
+      `https://mitraconsultancy.co.in/payment-success?reference=${razorpay_payment_id}`
     );
   } else {
     res.status(400).json({
