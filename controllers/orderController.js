@@ -55,10 +55,11 @@ export const createOrder = catchAsyncError(async (req, res, next) => {
     await course.save();
   }
 
+  const course = await Course.findById(courseId);
   const email = req.user.email;
 
   const emailMessage = `Dear ${user.full_name},
-  Thank you for choosing MITR Consultancy and enrolling in our [Course Name] program!
+  Thank you for choosing MITR Consultancy and enrolling in our ${course.courseName} program!
 
   Your training will last for three months, and all communication will take place via Google Chat, our official platform for daily interactions.
 
